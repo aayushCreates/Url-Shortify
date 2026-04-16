@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  urls          ShortUrl[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model ShortUrl {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  originalUrl  String    @map("original_url")
+  userId       String?   @map("user_id")
+  redirectType Int       @default(302) @map("redirect_type") // 301 or 302
+  isActive     Boolean   @default(true) @map("is_active")
+  expiresAt    DateTime? @map("expires_at")
+  passwordHash String?   @map("password_hash")
+  maxClicks    Int?      @map("max_clicks")
+  totalClicks  Int       @default(0) @map("total_clicks")
+  uniqueClicks Int       @default(0) @map("unique_clicks")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at") // soft delete
+
+  user       User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clicks     ClickEvent[]
+  variants   ABVariant[]
+  clickStats ClickStat[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("short_urls")
+}
+
+model ClickEvent {
+  id          String   @id @default(cuid())
+  shortUrlId  String   @map("short_url_id")
+  visitorHash String   @map("visitor_hash") // SHA-256(IP + UA)
+  country     String?
+  city        String?
+  device      String? // mobile, desktop, tablet
+  browser     String?
+  os          String?
+  referrer    String?
+  variantId   String?  @map("variant_id") // Which A/B variant was shown
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  shortUrl ShortUrl @relation(fields: [shortUrlId], references: [id], onDelete: Cascade)
+
+  @@index([shortUrlId, createdAt])
+  @@index([visitorHash])
+  @@map("click_events")
+}
+
+model ClickStat {
+  id         String @id @default(cuid())
+  shortUrlId String @map("short_url_id")
+  period     String // "hour", "day", "week", "month"
+  periodKey  String @map("period_key") // e.g. "2026-04-14", "2026-04-14T18"
+  clicks     Int    @default(0)
+  uniques    Int    @default(0)
+
+  shortUrl ShortUrl @relation(fields: [shortUrlId], references: [id], onDelete: Cascade)
+
+  @@unique([shortUrlId, period, periodKey])
+  @@index([shortUrlId, period])
+  @@map("click_stats")
+}
+
+model ABVariant {
+  id         String   @id @default(cuid())
+  shortUrlId String   @map("short_url_id")
+  url        String
+  weight     Int      @default(50) // percentage weight
+  clicks     Int      @default(0)
+  uniques    Int      @default(0)
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  shortUrl ShortUrl @relation(fields: [shortUrlId], references: [id], onDelete: Cascade)
+
+  @@index([shortUrlId])
+  @@map("ab_variants")
+}
+
