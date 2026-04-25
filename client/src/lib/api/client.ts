@@ -1,28 +1,32 @@
-import axios from 'axios'
+import axios from "axios";
 
-let accessToken: string | null = null
+let accessToken: string | null = null;
 
-export const setAccessToken = (token: string) => { accessToken = token }
-export const clearAccessToken = () => { accessToken = null }
-export const getAccessToken = () => accessToken
+export const setAccessToken = (token: string) => {
+  accessToken = token;
+};
+export const clearAccessToken = () => {
+  accessToken = null;
+};
+export const getAccessToken = () => accessToken;
 
 const refreshClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
-})
+});
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
   withCredentials: true,
-})
+});
 
 client.interceptors.request.use((config) => {
   if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
-  return config
-})
+  return config;
+});
 
 client.interceptors.response.use(
   (res) => res,
@@ -30,7 +34,10 @@ client.interceptors.response.use(
     const original = error.config;
 
     // Do not intercept login or register endpoints
-    if (original.url?.includes('/auth/login') || original.url?.includes('/auth/register')) {
+    if (
+      original.url?.includes("/auth/login") ||
+      original.url?.includes("/auth/register")
+    ) {
       return Promise.reject(error);
     }
 
@@ -38,8 +45,10 @@ client.interceptors.response.use(
       original._retry = true;
       try {
         const { data } = await refreshClient.post("/auth/refresh");
-        setAccessToken(data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
+        const newToken = data.data?.accessToken;
+        if (!newToken) throw new Error("No access token in refresh response");
+        setAccessToken(newToken);
+        original.headers.Authorization = `Bearer ${newToken}`;
         return client(original);
       } catch (refreshError) {
         clearAccessToken();
@@ -54,4 +63,4 @@ client.interceptors.response.use(
   },
 );
 
-export default client
+export default client;
