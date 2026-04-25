@@ -16,27 +16,71 @@ export class AuthService {
       where: { email: input.email.toLowerCase() },
     });
 
+    console.log("User exists: ", existingUser);
+
     if (existingUser) {
       throw Errors.conflict("An account with this email already exists");
     }
 
     const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
 
+    console.log("Hashed password: ", passwordHash);
+
     const user = await prisma.user.create({
       data: {
         email: input.email.toLowerCase(),
+        name: input.name,
         passwordHash,
       },
     });
+
+    console.log("Created user: ", user);
 
     const tokens = await this.generateTokenPair(user.id, user.role);
 
     logger.info(`User registered: ${user.email}`);
 
     return {
-      user: { id: user.id, email: user.email, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
       ...tokens,
     };
+  }
+
+  async getCurrentUser(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, role: true },
+    });
+
+    if (!user) {
+      throw Errors.notFound("User not found");
+    }
+
+    return { user };
+  }
+
+  async updateProfile(userId: string, input: { name: string; email: string }) {
+    // Check email isn't taken by another user
+    if (input.email) {
+      const existing = await prisma.user.findUnique({
+        where: { email: input.email.toLowerCase() },
+      });
+      if (existing && existing.id !== userId) {
+        throw Errors.conflict("That email address is already in use");
+      }
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: input.name,
+        email: input.email.toLowerCase(),
+      },
+      select: { id: true, email: true, name: true, role: true },
+    });
+
+    logger.info(`Profile updated for user: ${user.email}`);
+    return { user };
   }
 
   async login(input: LoginInput) {
@@ -61,7 +105,7 @@ export class AuthService {
     logger.info(`User logged in: ${user.email}`);
 
     return {
-      user: { id: user.id, email: user.email, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
       ...tokens,
     };
   }
@@ -94,6 +138,7 @@ export class AuthService {
       user: {
         id: storedToken.user.id,
         email: storedToken.user.email,
+        name: storedToken.user.name,
         role: storedToken.user.role,
       },
       ...tokens,
