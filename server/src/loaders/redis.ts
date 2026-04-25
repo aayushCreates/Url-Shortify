@@ -43,11 +43,25 @@ export async function connectRedis(): Promise<void> {
   attachListeners(redis, "Cache");
   attachListeners(redisQueue, "Queue");
 
+  const clients = [
+    { client: redis, name: "Cache" },
+    { client: redisQueue, name: "Queue" },
+  ];
+
   try {
-    await Promise.all([redis.connect(), redisQueue.connect()]);
+    const connectPromises = clients.map(async ({ client, name }) => {
+      if (client.status === "wait" || client.status === "end") {
+        logger.debug(`Initiating Redis ${name} connection...`);
+        return client.connect();
+      }
+      logger.debug(`Redis ${name} already in status: ${client.status}`);
+      return Promise.resolve();
+    });
+
+    await Promise.all(connectPromises);
     logger.info("✅ All Redis connections established");
   } catch (error) {
-    logger.error("❌ Redis connection failed", { error });
+    logger.error("❌ Redis connection failed", error as Error);
     process.exit(1);
   }
 }
