@@ -5,7 +5,8 @@ import { StatsQuery } from "./analytics.schema";
 export class AnalyticsController {
   async getOverview(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await analyticsService.getOverview(req.user!.userId);
+      const { from, to } = req.query as { from?: string; to?: string };
+      const result = await analyticsService.getOverview(req.user!.userId, { from, to });
       res.json({ data: result });
     } catch (error) {
       next(error);
