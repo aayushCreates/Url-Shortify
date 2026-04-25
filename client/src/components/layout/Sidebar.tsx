@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom'
-import { Zap, LayoutDashboard, Link2, BarChart3, Settings as SettingsIcon, Sparkles } from 'lucide-react'
+import { Zap, LayoutDashboard, Link2, BarChart3, Settings as SettingsIcon, Sparkles, CreditCard } from 'lucide-react'
 import { cn } from '../../lib/utils/cn'
 
 export function Sidebar() {
@@ -9,6 +9,7 @@ export function Sidebar() {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'URLs', path: '/urls', icon: Link2 },
     { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+    { name: 'Billing', path: '/billing', icon: CreditCard },
     { name: 'Settings', path: '/settings', icon: SettingsIcon },
   ]
 
@@ -59,9 +60,11 @@ export function Sidebar() {
           <p className="text-xs text-white/80 mb-3">
             Unlock unlimited links & analytics
           </p>
-          <button className="bg-white text-primary text-xs font-medium rounded-lg px-3 py-1.5 w-full hover:bg-primary-light transition-colors">
-            Upgrade Now
-          </button>
+          <Link to="/billing">
+            <button className="bg-white text-primary text-xs font-medium rounded-lg px-3 py-1.5 w-full hover:bg-primary-light transition-colors">
+              Upgrade Now
+            </button>
+          </Link>
         </div>
       </div>
     </aside>

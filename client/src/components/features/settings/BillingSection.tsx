@@ -1,5 +1,6 @@
 import { Zap } from 'lucide-react';
 import { Button } from '../../ui/Button';
+import { Link } from 'react-router-dom';
 
 export function BillingSection() {
   return (
@@ -22,9 +23,11 @@ export function BillingSection() {
           <h3 className="font-semibold text-text-primary">Pro Plan</h3>
           <p className="text-sm text-text-secondary mt-0.5">$29/month · Renews Apr 12, 2026</p>
         </div>
-        <Button variant="secondary" className="w-full sm:w-auto">
-          Manage billing
-        </Button>
+        <Link to="/billing">
+          <Button variant="secondary" className="w-full sm:w-auto">
+            Manage billing
+          </Button>
+        </Link>
       </div>
     </div>
   );

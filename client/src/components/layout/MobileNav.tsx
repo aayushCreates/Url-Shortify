@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom'
-import { LayoutDashboard, Link2, BarChart3, Settings } from 'lucide-react'
+import { LayoutDashboard, Link2, BarChart3, Settings, CreditCard } from 'lucide-react'
 import { cn } from '../../lib/utils/cn'
 
 export function MobileNav() {
@@ -9,6 +9,7 @@ export function MobileNav() {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'URLs', path: '/urls', icon: Link2 },
     { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+    { name: 'Billing', path: '/billing', icon: CreditCard },
     { name: 'Settings', path: '/settings', icon: Settings },
   ]
 

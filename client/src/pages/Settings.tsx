@@ -1,7 +1,7 @@
-import { ProfileSection } from '../components/features/settings/ProfileSection';
-import { BillingSection } from '../components/features/settings/BillingSection';
-import { ApiAccessSection } from '../components/features/settings/ApiAccessSection';
-import { NotificationsSection } from '../components/features/settings/NotificationsSection';
+import { ProfileSection } from "../components/features/settings/ProfileSection";
+import { BillingSection } from "../components/features/settings/BillingSection";
+import { ApiAccessSection } from "../components/features/settings/ApiAccessSection";
+import { NotificationsSection } from "../components/features/settings/NotificationsSection";
 
 export default function Settings() {
   return (
