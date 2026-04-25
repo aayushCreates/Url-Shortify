@@ -1,7 +1,5 @@
 import {
   Search,
-  Bell,
-  Menu,
   ChevronDown,
   LogOut,
   User as UserIcon,
