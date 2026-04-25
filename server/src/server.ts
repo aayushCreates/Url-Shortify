@@ -62,7 +62,10 @@ async function startServer() {
       shutdown("UNCAUGHT_EXCEPTION");
     });
   } catch (error) {
-    logger.error("❌ Failed to start server", { error });
+    logger.error("❌ Redis connection failed", {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    });
     process.exit(1);
   }
 }

@@ -25,8 +25,10 @@ const envSchema = z.object({
   RATE_LIMIT_CREATE: z.coerce.number().default(30),
   RATE_LIMIT_REDIRECT: z.coerce.number().default(200),
 
-  BASE_URL: z.string().url().default("http://localhost:3000"),
-  CORS_ORIGINS: z.string().default("http://localhost:3000"),
+  BASE_URL: z.string().url().default("http://localhost:5173"),
+  CORS_ORIGINS: z
+    .string()
+    .default("http://localhost:5173, http://127.0.0.1:5173"),
   IP_HASH_SALT: z.string().min(8, "IP_HASH_SALT must be at least 8 characters"),
 });
 

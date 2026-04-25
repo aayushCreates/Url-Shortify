@@ -21,10 +21,12 @@ winston.addColors(colors);
 
 const devFormat = winston.format.combine(
   winston.format.timestamp({ format: "HH:mm:ss" }),
+  winston.format.errors({ stack: true }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
+  winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
     const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : "";
-    return `${timestamp} ${level}: ${message} ${metaStr}`;
+    const log = `${timestamp} ${level}: ${message} ${metaStr}`;
+    return stack ? `${log}\n${stack}` : log;
   }),
 );
 
