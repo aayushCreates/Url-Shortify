@@ -3,9 +3,22 @@ import { authController } from "./auth.controller";
 import { authenticate } from "../../middleware/authenticate";
 import { validate } from "../../middleware/validate";
 import { authLimiter } from "../../loaders/rateLimit";
-import { registerSchema, loginSchema, refreshSchema } from "./auth.schema";
+import { registerSchema, loginSchema, refreshSchema, updateProfileSchema } from "./auth.schema";
+
 
 const router = Router();
+
+router.get("/me", authenticate, (req, res, next) =>
+  authController.getMe(req, res, next),
+);
+
+router.patch(
+  "/me",
+  authenticate,
+  validate({ body: updateProfileSchema }),
+  (req, res, next) => authController.updateMe(req, res, next),
+);
+
 
 router.post(
   "/register",
