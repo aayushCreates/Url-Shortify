@@ -1,5 +1,5 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../loaders/prisma";
-import { Prisma } from "../../generated/prisma/client";
 
 export class UrlRepository {
   async findBySlug(slug: string) {
