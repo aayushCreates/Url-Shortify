@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Urls from "./pages/Urls";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/urls" element={<Urls />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/billing" element={<Pricing />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
