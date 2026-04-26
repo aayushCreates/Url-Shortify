@@ -7,6 +7,12 @@ import {
   Globe,
   Link2,
   CheckCircle2,
+  HelpCircle,
+  MessageCircle,
+  CreditCard,
+  Globe2,
+  Layers,
+  Video,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 
@@ -407,6 +413,80 @@ export default function Landing() {
           <p className="text-center text-text-muted text-sm mt-10">
             All plans include a 14-day free trial. No credit card required.
           </p>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 px-4 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-text-secondary text-lg">
+                Quick answers to questions you may have. Can't find what you're
+                looking for?
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
+            {[
+              {
+                icon: HelpCircle,
+                question: "Is there a free trial available?",
+                answer:
+                  "Yes, you can try our Pro features for free for 14 days. No credit card required to start your trial and see the power of advanced analytics.",
+              },
+              {
+                icon: Layers,
+                question: "Can I change my plan later?",
+                answer:
+                  "Of course you can! Our pricing scales with your needs. You can upgrade or downgrade your plan at any time from your dashboard settings.",
+              },
+              {
+                icon: MessageCircle,
+                question: "What is your cancellation policy?",
+                answer:
+                  "We understand that things change. You can cancel your subscription at any time, and you'll continue to have access until the end of your billing cycle.",
+              },
+              {
+                icon: Globe2,
+                question: "Can I use my own custom domain?",
+                answer:
+                  "Yes! Pro and Enterprise users can connect their own branded domains to create custom short links that build brand trust and recognition.",
+              },
+              {
+                icon: CreditCard,
+                question: "How does billing work?",
+                answer:
+                  "Billing is simple and transparent. Plans are per account, and you can choose between monthly or annual billing for extra savings.",
+              },
+              {
+                icon: Video,
+                question: "Do you provide tutorials?",
+                answer:
+                  "We have an extensive library of video tutorials and step-by-step guides in our documentation to help you get the most out of Shortify.",
+              },
+            ].map((faq, i) => (
+              <div key={i} className="flex gap-4 group">
+                <div className="shrink-0">
+                  <div className="w-12 h-12 rounded-xl border border-border bg-bg-page flex items-center justify-center text-text-secondary group-hover:border-primary-border group-hover:text-primary transition-colors">
+                    <faq.icon className="h-6 w-6" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-text-primary mb-2">
+                    {faq.question}
+                  </h3>
+                  <p className="text-text-secondary leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
