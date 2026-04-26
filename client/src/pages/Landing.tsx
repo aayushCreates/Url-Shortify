@@ -76,7 +76,7 @@ export default function Landing() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-light/50 border border-primary-border mb-8 animate-fade-in-up">
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
             <span className="text-xs font-semibold text-primary tracking-wide uppercase">
-              Shortify 2.0 is live
+              Shortify is live
             </span>
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold text-text-primary tracking-tight mb-6 animate-fade-in-up animation-delay-100">
@@ -113,10 +113,10 @@ export default function Landing() {
 
           {/* Floating UI Mockup */}
           <div className="relative mx-auto max-w-4xl animate-fade-in-up animation-delay-400">
-            <div className="rounded-2xl border border-border bg-white shadow-2xl p-2 md:p-4 overflow-hidden relative group">
+            <div className="rounded-2xl border border-border bg-white shadow-xl p-2 md:p-4 overflow-hidden relative group">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <img
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2070"
+                src="/src/assets/hero.png"
                 alt="Dashboard Preview"
                 className="w-full h-auto rounded-xl border border-border shadow-sm"
               />
