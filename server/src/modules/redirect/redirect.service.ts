@@ -22,8 +22,14 @@ export class RedirectService {
   async resolve(
     slug: string,
     password?: string,
-  ): Promise<{ url: string; redirectType: number; urlId: string; variantId: string | null }> {
+  ): Promise<{
+    url: string;
+    redirectType: number;
+    urlId: string;
+    variantId: string | null;
+  }> {
     let cached: CachedUrl | null = null;
+    console.log("SLUG SHORT: ", slug);
 
     const cacheKey = `url:${slug}`;
     const cachedRaw = await redis.get(cacheKey);
@@ -91,7 +97,10 @@ export class RedirectService {
     let variantId: string | null = null;
 
     if (cached.variants && cached.variants.length > 0) {
-      const totalVariantWeight = cached.variants.reduce((sum, v) => sum + v.weight, 0);
+      const totalVariantWeight = cached.variants.reduce(
+        (sum, v) => sum + v.weight,
+        0,
+      );
       const originalWeight = Math.max(0, 100 - totalVariantWeight);
       const totalWeight = originalWeight + totalVariantWeight;
 
