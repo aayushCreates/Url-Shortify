@@ -2,20 +2,22 @@ import client from './client';
 import type { User } from '../../types/api';
 
 // Maps server user shape (role-based) to client User type
-function mapUser(serverUser: { id: string; name: string; email: string; role: string }): User {
+function mapUser(serverUser: { id: string; name: string; email: string; role: string; avatarUrl?: string }): User {
   return {
     id: serverUser.id,
     name: serverUser.name,
     email: serverUser.email,
+    avatarUrl: serverUser.avatarUrl,
     plan: 'free', // plan is not tracked in DB yet; default to free
     createdAt: new Date().toISOString(),
   };
 }
 
-export const updateProfile = async (data: { name: string; email: string }): Promise<User> => {
-  const { data: res } = await client.patch<{ data: { user: { id: string; name: string; email: string; role: string } } }>(
+export const updateProfile = async (data: FormData | { name: string; email: string }): Promise<User> => {
+  const { data: res } = await client.patch<{ data: { user: { id: string; name: string; email: string; role: string; avatarUrl?: string } } }>(
     '/auth/me',
     data,
+    data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
   );
   return mapUser(res.data.user);
 };
