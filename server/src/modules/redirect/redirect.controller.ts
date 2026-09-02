@@ -9,10 +9,8 @@ export class RedirectController {
       const slug = req.params.slug as string;
       const password = req.query.pwd as string | undefined;
 
-      const { url, redirectType, urlId, variantId } = await redirectService.resolve(
-        slug,
-        password,
-      );
+      const { url, redirectType, urlId, variantId } =
+        await redirectService.resolve(slug, password);
 
       const ip = req.ip || req.socket.remoteAddress || "0.0.0.0";
       const userAgent = req.headers["user-agent"] || "unknown";
@@ -33,7 +31,14 @@ export class RedirectController {
       });
 
       res.redirect(redirectType, url);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.errorCode) {
+        // It's an AppError, redirect to frontend error page
+        const frontendUrl = new URL(`${process.env.BASE_URL || 'http://localhost:5173'}/link/${req.params.slug}`);
+        frontendUrl.searchParams.set("error", error.errorCode);
+        frontendUrl.searchParams.set("message", error.message);
+        return res.redirect(302, frontendUrl.toString());
+      }
       next(error);
     }
   }
