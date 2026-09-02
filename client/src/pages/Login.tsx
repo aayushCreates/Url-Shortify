@@ -40,7 +40,17 @@ export default function Login() {
       toast.success('Welcome back!')
       navigate(from, { replace: true })
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Invalid email or password'
+      let message = 'An unexpected error occurred'
+      if (err.response?.data) {
+        if (err.response.data.details && err.response.data.details.length > 0) {
+          message = err.response.data.details.map((d: any) => d.message).join(', ')
+        } else if (err.response.data.message) {
+          message = err.response.data.message
+        }
+      } else if (err.message) {
+        message = err.message
+      }
+      
       setGlobalError(message)
       toast.error(message)
     }

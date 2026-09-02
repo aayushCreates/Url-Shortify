@@ -62,7 +62,17 @@ export default function Register() {
       toast.success('Account created successfully!')
       navigate('/dashboard', { replace: true })
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Something went wrong'
+      let message = 'An unexpected error occurred'
+      if (err.response?.data) {
+        if (err.response.data.details && err.response.data.details.length > 0) {
+          message = err.response.data.details.map((d: any) => d.message).join(', ')
+        } else if (err.response.data.message) {
+          message = err.response.data.message
+        }
+      } else if (err.message) {
+        message = err.message
+      }
+
       setGlobalError(message)
       toast.error(message)
     }
