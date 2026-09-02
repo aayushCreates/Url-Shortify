@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 import { setAccessToken, clearAccessToken } from "../lib/api/client";
@@ -25,16 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On every page load the in-memory access token is gone.
-  // Restore the session by exchanging the httpOnly refresh-token cookie
-  // for a fresh access token, then load the user profile.
+  const bootstrapRun = useRef(false);
+
   useEffect(() => {
+    if (bootstrapRun.current) return;
+    bootstrapRun.current = true;
+
     const bootstrap = async () => {
       try {
         const { data } = await authApi.refresh();
         setAccessToken(data.accessToken);
-        const { user } = await authApi.getMe();
-        setUser(user);
+        setUser(data.user);
       } catch {
         // Refresh token missing or expired — user must log in
         setUser(null);
@@ -44,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     bootstrap();
   }, []);
-
 
   const login = async (email: string, password: string) => {
     const { user, accessToken } = await authApi.login(email, password);
