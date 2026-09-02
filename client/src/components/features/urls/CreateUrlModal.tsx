@@ -1,24 +1,29 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link2, Sparkles, Check, X, QrCode, Copy } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link2, Sparkles, Check, X, QrCode, Copy, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
-import { Modal } from '../../ui/Modal';
-import { Button } from '../../ui/Button';
-import { Input } from '../../ui/Input';
-import { Toggle } from '../../ui/Toggle';
-import { createUrl, updateUrl, checkSlugAvailability } from '../../../lib/api/urls';
-import type { ShortUrl } from '../../../types/api';
-import { cn } from '../../../lib/utils/cn';
+import { Modal } from "../../ui/Modal";
+import { Button } from "../../ui/Button";
+import { Input } from "../../ui/Input";
+import { Toggle } from "../../ui/Toggle";
+import {
+  createUrl,
+  updateUrl,
+  checkSlugAvailability,
+} from "../../../lib/api/urls";
+import { buildShortUrl } from "../../../lib/utils/format";
+import type { ShortUrl } from "../../../types/api";
+import { cn } from "../../../lib/utils/cn";
 
 // Normalize a raw URL string to always have a scheme before Zod validates it
 function normalizeUrl(val: string): string {
   if (!val) return val;
   // Protocol-relative: //example.com → https://example.com
-  if (val.startsWith('//')) return `https:${val}`;
+  if (val.startsWith("//")) return `https:${val}`;
   // No protocol at all: example.com → https://example.com
   if (!/^https?:\/\//i.test(val)) return `https://${val}`;
   return val;
@@ -27,15 +32,21 @@ function normalizeUrl(val: string): string {
 const urlSchema = z.object({
   originalUrl: z
     .string()
-    .min(1, 'Please enter a URL')
+    .min(1, "Please enter a URL")
     .transform(normalizeUrl)
-    .pipe(z.string().url('Please enter a valid URL (e.g., https://example.com)')),
-  customSlug: z.string()
-    .min(3, 'Slug must be at least 3 characters')
-    .max(50, 'Slug cannot exceed 50 characters')
-    .regex(/^[a-zA-Z0-9-_]+$/, 'Only letters, numbers, hyphens, and underscores allowed')
+    .pipe(
+      z.string().url("Please enter a valid URL (e.g., https://example.com)"),
+    ),
+  customSlug: z
+    .string()
+    .min(3, "Slug must be at least 3 characters")
+    .max(50, "Slug cannot exceed 50 characters")
+    .regex(
+      /^[a-zA-Z0-9-_]+$/,
+      "Only letters, numbers, hyphens, and underscores allowed",
+    )
     .optional()
-    .or(z.literal('')),
+    .or(z.literal("")),
   expiresAt: z.string().optional(),
   password: z.string().optional(),
   maxClicks: z.string().optional(),
@@ -49,13 +60,25 @@ interface CreateUrlModalProps {
   initialData?: ShortUrl;
 }
 
-export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalProps) {
+export function CreateUrlModal({
+  isOpen,
+  onClose,
+  initialData,
+}: CreateUrlModalProps) {
   const isEditing = !!initialData;
-  const [tab, setTab] = useState<'simple' | 'advanced'>('simple');
-  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [hasPassword, setHasPassword] = useState(initialData?.hasPassword || false);
-  const [createdData, setCreatedData] = useState<{ shortUrl: string, qrCodeUrl?: string } | null>(null);
+  const [tab, setTab] = useState<"simple" | "advanced">("simple");
+  const [slugStatus, setSlugStatus] = useState<
+    "idle" | "checking" | "available" | "taken"
+  >("idle");
+  const [hasPassword, setHasPassword] = useState(
+    initialData?.hasPassword || false,
+  );
+  const [createdData, setCreatedData] = useState<{
+    shortUrl: string;
+    qrCodeUrl?: string;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -68,11 +91,13 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
   } = useForm<UrlFormValues>({
     resolver: zodResolver(urlSchema),
     defaultValues: {
-      originalUrl: initialData?.originalUrl || '',
-      customSlug: initialData?.slug || '',
-      password: '',
-      expiresAt: initialData?.expiresAt ? new Date(initialData.expiresAt).toISOString().slice(0, 16) : '',
-      maxClicks: initialData?.maxClicks ? String(initialData.maxClicks) : '',
+      originalUrl: initialData?.originalUrl || "",
+      customSlug: initialData?.slug || "",
+      password: "",
+      expiresAt: initialData?.expiresAt
+        ? new Date(initialData.expiresAt).toISOString().slice(0, 16)
+        : "",
+      maxClicks: initialData?.maxClicks ? String(initialData.maxClicks) : "",
     },
   });
 
@@ -82,34 +107,49 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
       reset({
         originalUrl: initialData.originalUrl,
         customSlug: initialData.slug,
-        password: '',
-        expiresAt: initialData.expiresAt ? new Date(initialData.expiresAt).toISOString().slice(0, 16) : '',
-        maxClicks: initialData.maxClicks ? String(initialData.maxClicks) : '',
+        password: "",
+        expiresAt: initialData.expiresAt
+          ? new Date(initialData.expiresAt).toISOString().slice(0, 16)
+          : "",
+        maxClicks: initialData.maxClicks ? String(initialData.maxClicks) : "",
       });
       setHasPassword(initialData.hasPassword);
-      setTab(initialData.expiresAt || initialData.maxClicks || initialData.hasPassword ? 'advanced' : 'simple');
+      setTab(
+        initialData.expiresAt ||
+          initialData.maxClicks ||
+          initialData.hasPassword
+          ? "advanced"
+          : "simple",
+      );
     } else {
-      reset({ originalUrl: '', customSlug: '', password: '', expiresAt: '', maxClicks: '' });
+      reset({
+        originalUrl: "",
+        customSlug: "",
+        password: "",
+        expiresAt: "",
+        maxClicks: "",
+      });
       setHasPassword(false);
-      setTab('simple');
+      setShowPassword(false);
+      setTab("simple");
     }
   }, [initialData, reset, isOpen]);
 
-  const slug = watch('customSlug');
+  const slug = watch("customSlug");
 
   useEffect(() => {
     if (!slug) {
-      setSlugStatus('idle');
+      setSlugStatus("idle");
       return;
     }
 
-    setSlugStatus('checking');
+    setSlugStatus("checking");
     const timer = setTimeout(async () => {
       try {
         const res = await checkSlugAvailability(slug);
-        setSlugStatus(res.available ? 'available' : 'taken');
+        setSlugStatus(res.available ? "available" : "taken");
       } catch {
-        setSlugStatus('idle');
+        setSlugStatus("idle");
       }
     }, 500);
 
@@ -119,30 +159,30 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
   const createMutation = useMutation({
     mutationFn: createUrl,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['urls', 'list'] });
-      
-      const domain = typeof window !== 'undefined' ? window.location.origin : 'https://short.ify';
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["urls", "list"] });
+
       setCreatedData({
-        shortUrl: `${domain}/${data.slug}`,
+        shortUrl: buildShortUrl(data.slug),
       });
-      toast.success('Link created successfully!');
+      toast.success("Link created successfully!");
     },
     onError: () => {
-      toast.error('Failed to create link. Please try again.');
+      toast.error("Failed to create link. Please try again.");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Parameters<typeof updateUrl>[1]) => updateUrl(initialData!.slug, data),
+    mutationFn: (data: Parameters<typeof updateUrl>[1]) =>
+      updateUrl(initialData!.slug, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['urls', 'list'] });
-      toast.success('Link updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["urls", "list"] });
+      toast.success("Link updated successfully!");
       onClose();
     },
     onError: () => {
-      toast.error('Failed to update link. Please try again.');
+      toast.error("Failed to update link. Please try again.");
     },
   });
 
@@ -157,8 +197,8 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
       return;
     }
 
-    if (tab === 'advanced' && slugStatus === 'taken') {
-      toast.error('Custom slug is already taken');
+    if (tab === "advanced" && slugStatus === "taken") {
+      toast.error("Custom slug is already taken");
       return;
     }
 
@@ -173,9 +213,10 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
 
   const handleClose = () => {
     reset();
-    setTab('simple');
-    setSlugStatus('idle');
+    setTab("simple");
+    setSlugStatus("idle");
     setHasPassword(false);
+    setShowPassword(false);
     setCreatedData(null);
     createMutation.reset();
     updateMutation.reset();
@@ -191,23 +232,32 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
 
   if (createdData) {
     return (
-      <Modal isOpen={isOpen} onClose={handleClose} title="Link created!" description="Your short link is ready to share.">
+      <Modal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title="Link created!"
+        description="Your short link is ready to share."
+      >
         <div className="flex flex-col items-center py-6 space-y-6">
           <div className="bg-success-bg p-3 rounded-full animate-bounce-slow">
             <Check className="h-8 w-8 text-success" />
           </div>
-          
+
           <div className="w-full relative group">
-            <input 
-              readOnly 
-              value={createdData.shortUrl} 
+            <input
+              readOnly
+              value={createdData.shortUrl}
               className="w-full bg-bg-muted border border-border text-primary font-medium text-center text-lg py-4 rounded-xl pr-12 focus:outline-none"
             />
-            <button 
+            <button
               onClick={copyToClipboard}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg border border-border shadow-sm text-text-secondary hover:text-primary transition-colors"
             >
-              {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+              {copied ? (
+                <Check className="h-4 w-4 text-success" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </button>
           </div>
 
@@ -217,13 +267,20 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
           </div>
 
           <div className="w-full flex gap-3 pt-4">
-            <Button variant="secondary" className="w-full" onClick={handleClose}>
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={handleClose}
+            >
               Close
             </Button>
-            <Button className="w-full" onClick={() => {
-              setCreatedData(null);
-              reset();
-            }}>
+            <Button
+              className="w-full"
+              onClick={() => {
+                setCreatedData(null);
+                reset();
+              }}
+            >
               Create Another
             </Button>
           </div>
@@ -237,24 +294,32 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
       isOpen={isOpen}
       onClose={handleClose}
       title={isEditing ? "Edit link" : "Create new link"}
-      description={isEditing ? "Update your shortened URL's destination or settings." : "Shorten your URL and optionally configure advanced settings."}
+      description={
+        isEditing
+          ? "Update your shortened URL's destination or settings."
+          : "Shorten your URL and optionally configure advanced settings."
+      }
     >
       <div className="flex bg-bg-muted p-1 rounded-lg mb-6">
         <button
           className={cn(
             "flex-1 py-1.5 text-sm font-medium rounded-md transition-colors",
-            tab === 'simple' ? "bg-white text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
+            tab === "simple"
+              ? "bg-white text-text-primary shadow-sm"
+              : "text-text-secondary hover:text-text-primary",
           )}
-          onClick={() => setTab('simple')}
+          onClick={() => setTab("simple")}
         >
           Simple
         </button>
         <button
           className={cn(
             "flex-1 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-1.5",
-            tab === 'advanced' ? "bg-white text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
+            tab === "advanced"
+              ? "bg-white text-text-primary shadow-sm"
+              : "text-text-secondary hover:text-text-primary",
           )}
-          onClick={() => setTab('advanced')}
+          onClick={() => setTab("advanced")}
         >
           <Sparkles className="h-3.5 w-3.5 text-primary" />
           Advanced
@@ -267,36 +332,52 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
           placeholder="https://example.com/very/long/url"
           leftIcon={<Link2 className="h-4 w-4" />}
           error={errors.originalUrl?.message}
-          {...register('originalUrl', {
+          {...register("originalUrl", {
             onBlur: (e) => {
               const normalized = normalizeUrl(e.target.value.trim());
               if (normalized !== e.target.value) {
                 e.target.value = normalized;
                 // Sync react-hook-form's internal value
-                register('originalUrl').onChange({ target: e.target, type: 'change' });
+                register("originalUrl").onChange({
+                  target: e.target,
+                  type: "change",
+                });
               }
             },
           })}
         />
 
-        {tab === 'advanced' && (
-          <div className="space-y-4 animate-fade-in-up" style={{ animationDuration: '0.3s' }}>
+        {tab === "advanced" && (
+          <div
+            className="space-y-4 animate-fade-in-up"
+            style={{ animationDuration: "0.3s" }}
+          >
             <div className="relative">
               <Input
                 label="Custom Slug (Optional)"
                 placeholder="my-custom-link"
                 error={errors.customSlug?.message}
                 disabled={isEditing}
-                {...register('customSlug')}
+                {...register("customSlug")}
               />
               {slug && !isEditing && (
                 <div className="absolute right-3 top-9 flex items-center">
-                  {slugStatus === 'checking' && <span className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />}
-                  {slugStatus === 'available' && <Check className="h-4 w-4 text-success" />}
-                  {slugStatus === 'taken' && <X className="h-4 w-4 text-danger" />}
+                  {slugStatus === "checking" && (
+                    <span className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  )}
+                  {slugStatus === "available" && (
+                    <Check className="h-4 w-4 text-success" />
+                  )}
+                  {slugStatus === "taken" && (
+                    <X className="h-4 w-4 text-danger" />
+                  )}
                 </div>
               )}
-              {slugStatus === 'taken' && <p className="text-xs text-danger mt-1">This slug is already taken.</p>}
+              {slugStatus === "taken" && (
+                <p className="text-xs text-danger mt-1">
+                  This slug is already taken.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -304,33 +385,58 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
                 type="datetime-local"
                 label="Expiration Date"
                 error={errors.expiresAt?.message}
-                {...register('expiresAt')}
+                {...register("expiresAt")}
               />
               <Input
                 type="number"
                 label="Max Clicks"
                 placeholder="Unlimited"
                 error={errors.maxClicks?.message}
-                {...register('maxClicks')}
+                {...register("maxClicks")}
               />
             </div>
 
             <div className="border border-border rounded-xl p-4 bg-bg-page space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium text-text-primary">Password Protection</h4>
-                  <p className="text-xs text-text-secondary">Require a password to access this link</p>
+                  <h4 className="text-sm font-medium text-text-primary">
+                    Password Protection
+                  </h4>
+                  <p className="text-xs text-text-secondary">
+                    Require a password to access this link
+                  </p>
                 </div>
-                <Toggle checked={hasPassword} onChange={(e) => setHasPassword(e.target.checked)} />
+                <Toggle
+                  checked={hasPassword}
+                  onChange={(e) => setHasPassword(e.target.checked)}
+                />
               </div>
-              
+
               {hasPassword && (
-                <div className="pt-2 animate-fade-in-up" style={{ animationDuration: '0.2s' }}>
+                <div
+                  className="pt-2 animate-fade-in-up"
+                  style={{ animationDuration: "0.2s" }}
+                >
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter password"
                     error={errors.password?.message}
-                    {...register('password', { required: hasPassword ? "Password is required" : false })}
+                    {...register("password", {
+                      required: hasPassword ? "Password is required" : false,
+                    })}
+                    rightIcon={
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-text-muted hover:text-text-primary focus:outline-none flex items-center justify-center w-full h-full"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    }
                   />
                 </div>
               )}
@@ -342,8 +448,13 @@ export function CreateUrlModal({ isOpen, onClose, initialData }: CreateUrlModalP
           <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={isEditing ? updateMutation.isPending : createMutation.isPending}>
-            {isEditing ? 'Save Changes' : 'Create Link'}
+          <Button
+            type="submit"
+            isLoading={
+              isEditing ? updateMutation.isPending : createMutation.isPending
+            }
+          >
+            {isEditing ? "Save Changes" : "Create Link"}
           </Button>
         </div>
       </form>
