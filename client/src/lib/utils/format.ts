@@ -30,3 +30,12 @@ export function timeAgo(dateString: string): string {
   if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`
   return `${mins} min${mins > 1 ? 's' : ''} ago`
 }
+
+export function getShortUrlDomain(): string {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+  return apiUrl.replace(/\/api\/v1\/?$/, '');
+}
+
+export function buildShortUrl(slug: string): string {
+  return `${getShortUrlDomain()}/${slug}`;
+}
