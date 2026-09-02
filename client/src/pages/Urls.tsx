@@ -8,7 +8,7 @@ import { CreateUrlModal } from '../components/features/urls/CreateUrlModal';
 import { DeleteConfirmModal } from '../components/features/urls/DeleteConfirmModal';
 import { fetchUrls } from '../lib/api/urls';
 import { useDebounce } from '../hooks/useDebounce';
-import { formatDate, formatNumber } from '../lib/utils/format';
+import { formatDate, formatNumber, buildShortUrl } from '../lib/utils/format';
 import { cn } from '../lib/utils/cn';
 import type { ShortUrl } from '../types/api';
 
@@ -34,8 +34,7 @@ export default function Urls() {
   });
 
   const handleCopy = async (id: string, slug: string) => {
-    const domain = typeof window !== 'undefined' ? window.location.origin : 'https://short.ify';
-    await navigator.clipboard.writeText(`${domain}/${slug}`);
+    await navigator.clipboard.writeText(buildShortUrl(slug));
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -134,7 +133,7 @@ export default function Urls() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <a 
-                            href={`/${url.slug}`}
+                            href={buildShortUrl(url.slug)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary font-medium text-sm hover:underline"
