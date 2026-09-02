@@ -33,10 +33,11 @@ client.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // Do not intercept login or register endpoints
+    // Do not intercept auth endpoints
     if (
       original.url?.includes("/auth/login") ||
-      original.url?.includes("/auth/register")
+      original.url?.includes("/auth/register") ||
+      original.url?.includes("/auth/refresh")
     ) {
       return Promise.reject(error);
     }
@@ -53,7 +54,12 @@ client.interceptors.response.use(
       } catch (refreshError) {
         clearAccessToken();
         const path = window.location.pathname;
-        if (path !== "/login" && path !== "/register" && path !== "/") {
+        if (
+          path !== "/login" &&
+          path !== "/register" &&
+          path !== "/" &&
+          !path.startsWith("/link/")
+        ) {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);
