@@ -10,6 +10,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import LinkError from "./pages/LinkError";
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/billing" element={<Pricing />} />
       </Route>
 
+      <Route path="/link/:slug" element={<LinkError />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
