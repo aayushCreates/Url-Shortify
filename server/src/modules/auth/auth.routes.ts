@@ -16,10 +16,12 @@ router.get("/me", authenticate, (req, res, next) =>
   authController.getMe(req, res, next),
 );
 
+import { upload } from "../../middleware/upload";
+
 router.patch(
   "/me",
   authenticate,
-  validate({ body: updateProfileSchema }),
+  upload.single("avatar"),
   (req, res, next) => authController.updateMe(req, res, next),
 );
 
