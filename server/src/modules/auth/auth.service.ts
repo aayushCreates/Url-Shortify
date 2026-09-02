@@ -41,7 +41,7 @@ export class AuthService {
     logger.info(`User registered: ${user.email}`);
 
     return {
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl },
       ...tokens,
     };
   }
@@ -49,7 +49,7 @@ export class AuthService {
   async getCurrentUser(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, avatarUrl: true },
     });
 
     if (!user) {
@@ -59,7 +59,7 @@ export class AuthService {
     return { user };
   }
 
-  async updateProfile(userId: string, input: { name: string; email: string }) {
+  async updateProfile(userId: string, input: { name?: string; email?: string; avatarUrl?: string }) {
     // Check email isn't taken by another user
     if (input.email) {
       const existing = await prisma.user.findUnique({
@@ -73,10 +73,11 @@ export class AuthService {
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        name: input.name,
-        email: input.email.toLowerCase(),
+        ...(input.name && { name: input.name }),
+        ...(input.email && { email: input.email.toLowerCase() }),
+        ...(input.avatarUrl && { avatarUrl: input.avatarUrl }),
       },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, avatarUrl: true },
     });
 
     logger.info(`Profile updated for user: ${user.email}`);
@@ -105,7 +106,7 @@ export class AuthService {
     logger.info(`User logged in: ${user.email}`);
 
     return {
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl },
       ...tokens,
     };
   }
@@ -140,6 +141,7 @@ export class AuthService {
         email: storedToken.user.email,
         name: storedToken.user.name,
         role: storedToken.user.role,
+        avatarUrl: storedToken.user.avatarUrl,
       },
       ...tokens,
     };
