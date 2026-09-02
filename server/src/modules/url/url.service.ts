@@ -91,6 +91,13 @@ export class UrlService {
       JSON.stringify({
         originalUrl: shortUrl.originalUrl,
         redirectType: shortUrl.redirectType,
+        passwordHash: shortUrl.passwordHash,
+        isActive: shortUrl.isActive,
+        expiresAt: shortUrl.expiresAt?.toISOString() ?? null,
+        maxClicks: shortUrl.maxClicks,
+        totalClicks: shortUrl.totalClicks,
+        id: shortUrl.id,
+        variants: [],
       }),
       "EX",
       CACHE_TTL,
