@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +19,9 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileSection() {
   const { user, refreshUser } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   
   const {
     register,
@@ -37,6 +41,8 @@ export function ProfileSection() {
     onSuccess: async (updatedUser) => {
       toast.success('Profile updated successfully');
       reset({ name: updatedUser.name, email: updatedUser.email });
+      setAvatarFile(null);
+      setAvatarPreview(null);
       await refreshUser();
     },
     onError: (err: any) => {
@@ -46,7 +52,31 @@ export function ProfileSection() {
   });
 
   const onSubmit = (data: ProfileFormValues) => {
-    mutation.mutate(data);
+    if (avatarFile) {
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('email', data.email);
+      formData.append('avatar', avatarFile);
+      mutation.mutate(formData as any);
+    } else {
+      mutation.mutate(data);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('File size should not exceed 2MB');
+        return;
+      }
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
 
@@ -59,14 +89,21 @@ export function ProfileSection() {
 
       <div className="flex items-center gap-4 mb-6">
         <div className="h-16 w-16 rounded-full bg-primary-light flex items-center justify-center text-primary text-xl font-semibold overflow-hidden">
-          {user?.avatarUrl ? (
-             <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+          {avatarPreview || user?.avatarUrl ? (
+             <img src={avatarPreview || user?.avatarUrl} alt={user?.name} className="h-full w-full object-cover" />
           ) : (
              user?.name?.charAt(0).toUpperCase() || 'U'
           )}
         </div>
         <div>
-          <Button variant="ghost" size="sm" className="mb-1">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept="image/*" 
+            className="hidden" 
+          />
+          <Button variant="ghost" size="sm" className="mb-1" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4 mr-2" />
             Change photo
           </Button>
@@ -88,6 +125,7 @@ export function ProfileSection() {
             placeholder="jane@example.com"
             {...register('email')}
             error={errors.email?.message}
+            disabled // Often email cannot be easily changed in simple setups, but if backend supports it, keep it editable.
           />
         </div>
         <div className="flex justify-end pt-2">
