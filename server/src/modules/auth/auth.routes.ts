@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Request, Response, NextFunction } from "express";
 import { authController } from "./auth.controller";
 import { authenticate } from "../../middleware/authenticate";
 import { validate } from "../../middleware/validate";
@@ -12,8 +13,11 @@ import {
 
 const router = Router();
 
-router.get("/me", authenticate, (req, res, next) =>
-  authController.getMe(req, res, next),
+router.get(
+  "/me",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.getMe(req, res, next),
 );
 
 import { upload } from "../../middleware/upload";
@@ -22,35 +26,41 @@ router.patch(
   "/me",
   authenticate,
   upload.single("avatar"),
-  (req, res, next) => authController.updateMe(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.updateMe(req, res, next),
 );
 
 router.post(
   "/register",
   authLimiter,
   validate({ body: registerSchema }),
-  (req, res, next) => authController.register(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.register(req, res, next),
 );
 
 router.post(
   "/login",
   authLimiter,
   validate({ body: loginSchema }),
-  (req, res, next) => authController.login(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.login(req, res, next),
 );
 
 // No body validation — token is read from the httpOnly cookie (req.cookies.refreshToken).
 // refreshToken in the body is accepted as a fallback for non-browser clients.
-router.post("/refresh", (req, res, next) =>
+router.post("/refresh", (req: Request, res: Response, next: NextFunction) =>
   authController.refresh(req, res, next),
 );
 
-router.post("/logout", (req, res, next) =>
+router.post("/logout", (req: Request, res: Response, next: NextFunction) =>
   authController.logout(req, res, next),
 );
 
-router.post("/revoke-all", authenticate, (req, res, next) =>
-  authController.revokeAll(req, res, next),
+router.post(
+  "/revoke-all",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.revokeAll(req, res, next),
 );
 
 export default router;

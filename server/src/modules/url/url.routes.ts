@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Request, Response, NextFunction } from "express";
 import { urlController } from "./url.controller";
 import { authenticate } from "../../middleware/authenticate";
 import { validate } from "../../middleware/validate";
@@ -18,7 +19,8 @@ router.post(
   authenticate,
   createUrlLimiter,
   validate({ body: createUrlSchema }),
-  (req, res, next) => urlController.create(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.create(req, res, next),
 );
 
 router.post(
@@ -26,41 +28,47 @@ router.post(
   authenticate,
   createUrlLimiter,
   validate({ body: bulkCreateUrlSchema }),
-  (req, res, next) => urlController.bulkCreate(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.bulkCreate(req, res, next),
 );
 
 router.get(
   "/",
   authenticate,
   validate({ query: listUrlsQuerySchema }),
-  (req, res, next) => urlController.list(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.list(req, res, next),
 );
 
 router.get(
   "/:slug/qr",
   validate({ params: slugParamSchema }),
-  (req, res, next) => urlController.generateQrCode(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.generateQrCode(req, res, next),
 );
 
 router.get(
   "/:slug",
   authenticate,
   validate({ params: slugParamSchema }),
-  (req, res, next) => urlController.getBySlug(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.getBySlug(req, res, next),
 );
 
 router.patch(
   "/:slug",
   authenticate,
   validate({ params: slugParamSchema, body: updateUrlSchema }),
-  (req, res, next) => urlController.update(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.update(req, res, next),
 );
 
 router.delete(
   "/:slug",
   authenticate,
   validate({ params: slugParamSchema }),
-  (req, res, next) => urlController.delete(req, res, next),
+  (req: Request, res: Response, next: NextFunction) =>
+    urlController.delete(req, res, next),
 );
 
 export default router;
